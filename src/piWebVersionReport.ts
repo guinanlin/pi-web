@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { effectivePiWebConfig } from "./config.js";
+import { DEFAULT_WEB_PORT } from "./shared/defaultPorts.js";
 import { SessionDaemonClient } from "./sessiond/sessionDaemonClient.js";
 import type { PiWebComponentStatus, PiWebInstallationInfo, PiWebVersionResponse } from "./shared/apiTypes.js";
 import { parsePiWebComponentStatus, parsePiWebVersionResponse } from "./shared/piWebStatusParsing.js";
@@ -132,7 +133,7 @@ function webVersionEndpoint(configEnv: NodeJS.ProcessEnv | undefined): { endpoin
   try {
     const { config } = effectivePiWebConfig(configEnv === undefined ? {} : { env: configEnv });
     const host = httpClientHost(config.host);
-    const port = config.port ?? 8504;
+    const port = config.port ?? DEFAULT_WEB_PORT;
     return { endpoint: `http://${urlHost(host)}:${String(port)}${PI_WEB_VERSION_ENDPOINT_PATH}` };
   } catch (error) {
     return { error: `could not read PI WEB config: ${errorMessage(error)}` };

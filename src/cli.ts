@@ -6,6 +6,7 @@ import { homedir, userInfo } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { defaultPiWebConfigPath, defaultPiWebDataDir, examplePiWebConfig } from "./config.js";
+import { DEFAULT_DEV_CLIENT_PORT, DEFAULT_WEB_PORT } from "./shared/defaultPorts.js";
 import { piWebDockerCommand, type PiWebDockerMode } from "./docker/piWebDockerCommandPlan.js";
 import { ownEnvironmentValue } from "./environment.js";
 import { runPluginRecoveryCli, type SessionDaemonRestartPlan } from "./pluginRecoveryCli.js";
@@ -143,7 +144,7 @@ function manualRunAdvice(): string {
   return [
     "Run PI WEB manually from a checkout:",
     "  npm run start:sessiond",
-    "  PI_WEB_PORT=8504 npm start",
+    `  PI_WEB_PORT=${String(DEFAULT_WEB_PORT)} npm start`,
     "",
     "For development in one terminal:",
     "  npm run dev",
@@ -205,7 +206,7 @@ function isLingerEnabled(): boolean | undefined {
 }
 
 function parseInstallOptions(args: string[]): InstallOptions {
-  const options: InstallOptions = { host: "127.0.0.1", port: "8504", mode: "production" };
+  const options: InstallOptions = { host: "127.0.0.1", port: String(DEFAULT_WEB_PORT), mode: "production" };
   for (let i = 0; i < args.length; i += 1) {
     const arg = args[i];
     if (arg === undefined) continue;
@@ -722,7 +723,7 @@ async function install(args: string[]): Promise<void> {
   console.log(`\nPI WEB ${options.mode} services are installed and starting.`);
   console.log(`Config: ${configPath}`);
   if (options.mode === "dev") {
-    console.log("Open: http://127.0.0.1:8505");
+    console.log(`Open: http://127.0.0.1:${String(DEFAULT_DEV_CLIENT_PORT)}`);
   } else {
     console.log(`Open: http://${options.host === "0.0.0.0" ? "127.0.0.1" : options.host}:${options.port}`);
   }
@@ -1351,7 +1352,7 @@ function help(): void {
   console.log(`PI WEB
 
 Usage:
-  pi-web install [--dev] [--host 127.0.0.1] [--port 8504] [--config ~/.config/pi-web/config.json]
+  pi-web install [--dev] [--host 127.0.0.1] [--port ${String(DEFAULT_WEB_PORT)}] [--config ~/.config/pi-web/config.json]
   pi-web uninstall
   pi-web start|stop|restart|status|logs
   pi-web plugins disable <plugin-id> [--config <path>] [--restart]

@@ -42,6 +42,7 @@
     "!examples/**/dist",
     "docs/plugins.md",
     "docs/config.md",
+    "docs/session-http.md",
     "docs/assets",
     "plugin-api.d.ts",
     "server-plugin-api.d.ts"

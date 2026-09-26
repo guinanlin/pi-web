@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, isAbsolute, join, normalize, resolve } from "node:path";
 import type { PiWebConfigValues, PiWebDeprecatedAgentInput } from "./shared/apiTypes.js";
+import { DEFAULT_WEB_PORT } from "./shared/defaultPorts.js";
 import { isPiWebPluginId, piWebPluginIdPattern } from "./shared/pluginIds.js";
 
 export type PiWebConfig = PiWebConfigValues;
@@ -583,6 +584,6 @@ function isNonEmptyStringArray(value: unknown): value is string[] {
 }
 
 export function examplePiWebConfig(config: PiWebConfig = {}): string {
-  return `${JSON.stringify({ host: config.host ?? "127.0.0.1", port: config.port ?? 8504, allowedHosts: config.allowedHosts ?? [] }, null, 2)}\n`;
+  return `${JSON.stringify({ host: config.host ?? "127.0.0.1", port: config.port ?? DEFAULT_WEB_PORT, allowedHosts: config.allowedHosts ?? [] }, null, 2)}\n`;
 }
 

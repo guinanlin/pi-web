@@ -6,11 +6,12 @@ import { fileURLToPath } from "node:url";
 import type { Plugin } from "vite";
 import { defineConfig, normalizePath } from "vite";
 import { effectivePiWebConfig } from "./src/config";
+import { DEFAULT_DEV_CLIENT_PORT, DEFAULT_WEB_PORT } from "./src/shared/defaultPorts";
 import { DEPLOYMENT_MANIFEST_CONTENT_TYPE, DEPLOYMENT_MANIFEST_PATH, createDeploymentFlavorResolver, deploymentIdentityAssetForPath, deploymentManifestForFlavor, isDeploymentIdentityAssetPath } from "./src/server/deploymentIdentity";
 import { detectPiWebInstallation } from "./src/server/piWebStatus";
 
 const { config } = effectivePiWebConfig();
-const apiPort = config.port ?? 8504;
+const apiPort = config.port ?? DEFAULT_WEB_PORT;
 const docsRoot = resolve("docs");
 const docsPrefix = "/site";
 const clientPublicRoot = resolve("src/client/public");
@@ -220,7 +221,7 @@ export default defineConfig({
     // The application's /api WebSocket proxy remains enabled.
     hmr: false,
     ws: false,
-    port: 8505,
+    port: DEFAULT_DEV_CLIENT_PORT,
     strictPort: true,
     ...(config.allowedHosts === undefined ? {} : { allowedHosts: config.allowedHosts }),
     proxy: {

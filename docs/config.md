@@ -71,7 +71,7 @@ Process restarts depend on the key:
 ```json
 {
   "host": "127.0.0.1",
-  "port": 8504,
+  "port": 3418,
   "pathAccess": {
     "allowedPaths": ["~/SDKs", "/opt/reference"]
   },

@@ -1,5 +1,5 @@
 import { LitElement, css, html } from "lit";
-import { customElement, property, query } from "lit/decorators.js";
+import { customElement, property, query, state } from "lit/decorators.js";
 import type { Machine, MachineHealth, Project, SessionActivity, SessionInfo, SessionStatus, Workspace } from "../../api";
 import type { MachineStatusSnapshot } from "../../../../shared/machineStatus";
 import type { WorkspaceLabelItem } from "../../plugins/types";
@@ -47,6 +47,7 @@ export class AppNavigationPanel extends LitElement {
   @property({ type: Number }) startingSessionCount = 0;
   @property({ type: Boolean }) canStartSession = false;
   @property({ attribute: false }) onShowActions?: () => void;
+  @property({ attribute: false }) onAddProject?: () => void;
   @property({ attribute: false }) onToggleMachines?: () => void;
   @property({ attribute: false }) onToggleProjects?: () => void;
   @property({ attribute: false }) onToggleWorkspaces?: () => void;
@@ -74,6 +75,8 @@ export class AppNavigationPanel extends LitElement {
   @property({ attribute: false }) onRemoveMachine?: (machine: Machine) => void | Promise<void>;
   @property({ attribute: false }) onFocusNavigationTarget?: (target: NavigationFocusTarget) => void | Promise<void>;
   @property({ attribute: false }) onCancelKeyboardNavigation?: () => void | Promise<void>;
+  @state() private projectSearch = "";
+  @state() private branchSearch = "";
 
   @query("machine-list") private machineList?: KeyboardNavigableSection;
   @query("machine-switcher") private machineSwitcher?: KeyboardNavigableSection;
@@ -144,6 +147,35 @@ export class AppNavigationPanel extends LitElement {
           <button title="Show Actions" aria-label="Show Actions" @click=${() => { this.onShowActions?.(); }}>Actions</button>
         </div>
       </header>
+      <div class="top-context">
+        <label>
+          <span class="field-label">
+            <span>Project</span>
+            <button type="button" class="add-project" title="Add project" aria-label="Add project" @click=${() => { this.onAddProject?.(); }}>+</button>
+          </span>
+          <input
+            list="pi-web-project-options"
+            placeholder="Search projects"
+            .value=${this.projectSearch !== "" ? this.projectSearch : (this.selectedProject?.name ?? "")}
+            @input=${(event: Event) => { this.selectProjectFromSearch(event); }}
+          >
+          <datalist id="pi-web-project-options">
+            ${this.projects.map((project) => html`<option value=${project.name}>${project.path}</option>`)}
+          </datalist>
+        </label>
+        <label>
+          <span>Branch</span>
+          <input
+            list="pi-web-branch-options"
+            placeholder="Search branches"
+            .value=${this.branchSearch !== "" ? this.branchSearch : (this.selectedWorkspace?.label ?? "")}
+            @input=${(event: Event) => { this.selectBranchFromSearch(event); }}
+          >
+          <datalist id="pi-web-branch-options">
+            ${this.workspaces.map((workspace) => html`<option value=${workspace.label}>${workspace.isMain ? "default" : workspace.path}</option>`)}
+          </datalist>
+        </label>
+      </div>
       ${this.compact && shouldShowMachinesSection(this.machines) ? html`
         <machine-list
           .machines=${this.machines}
@@ -222,6 +254,23 @@ export class AppNavigationPanel extends LitElement {
     `;
   }
 
+  private selectProjectFromSearch(event: Event): void {
+    const value = event.target instanceof HTMLInputElement ? event.target.value : "";
+    this.projectSearch = value;
+    const project = this.projects.find((candidate) => candidate.name === value || candidate.path === value);
+    if (project !== undefined) {
+      void this.onSelectProject?.(project);
+      this.branchSearch = "";
+    }
+  }
+
+  private selectBranchFromSearch(event: Event): void {
+    const value = event.target instanceof HTMLInputElement ? event.target.value : "";
+    this.branchSearch = value;
+    const workspace = this.workspaces.find((candidate) => candidate.label === value || candidate.path === value);
+    if (workspace !== undefined) void this.onSelectWorkspace?.(workspace);
+  }
+
   /**
    * Project and workspace rows always belong to the selected machine, resolved
    * exactly as the rest of the app resolves it — including its local-machine
@@ -258,6 +307,14 @@ export class AppNavigationPanel extends LitElement {
     header strong { flex: 0 0 auto; }
     machine-switcher { flex: 1 1 auto; min-width: 0; }
     :host([compact]) header { display: none; }
+    .top-context { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; padding: 8px 10px; border-bottom: 1px solid var(--pi-border-muted); }
+    .top-context label { display: grid; gap: 3px; min-width: 0; }
+    .top-context .field-label { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-width: 0; }
+    .top-context label > span, .top-context .field-label > span { color: var(--pi-muted); font-size: 10px; letter-spacing: .05em; text-transform: uppercase; }
+    .top-context .add-project { display: inline-grid; place-items: center; width: 16px; height: 16px; padding: 0; border-radius: 4px; color: var(--pi-text-secondary); font: 14px/1 system-ui, sans-serif; }
+    .top-context input { box-sizing: border-box; width: 100%; border: 1px solid var(--pi-border); border-radius: 5px; background: var(--pi-surface); color: var(--pi-text); padding: 6px 8px; font: 13px system-ui, sans-serif; }
+    .top-context input:focus { outline: 1px solid var(--pi-accent-border); outline-offset: 1px; }
+    project-list, workspace-list { display: none; }
     .header-actions { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; }
     /* Expanded sections share the panel height equally, so collapsing one
        section distributes its space to every remaining section, not just the

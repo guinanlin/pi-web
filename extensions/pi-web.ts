@@ -108,7 +108,7 @@ export default function piWebExtension(pi: ExtensionAPI): void {
       }
 
       if (subcommand === "open") {
-        ctx.ui.notify("PI WEB default URL: http://127.0.0.1:8504", "info");
+        ctx.ui.notify("PI WEB default URL: http://127.0.0.1:3418", "info");
         return;
       }
 
